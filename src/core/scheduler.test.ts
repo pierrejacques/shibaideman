@@ -3,15 +3,15 @@ import { Scheduler } from "./scheduler";
 
 describe('Scheduler', () => {
   const tasks = [
-    () => timeout(400),
-    () => timeout(200),
-    () => timeout(100),
-    () => timeout(600),
-    () => timeout(100),
-    () => timeout(100),
-    () => timeout(200),
-    () => timeout(700),
-    () => timeout(500)
+    400,
+    200,
+    100,
+    600,
+    100,
+    100,
+    200,
+    700,
+    500
   ];
 
   const createExecuteNext = () => {
@@ -26,7 +26,7 @@ describe('Scheduler', () => {
         const index = i;
         const task = tasks[index];
         if (task) {
-          return task().then(
+          return timeout(task).then(
             () => {
               doneOrder.push(index)
             }
