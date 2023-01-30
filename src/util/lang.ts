@@ -47,7 +47,7 @@ export function getDateString() {
  * util function return a promise to wait for ms seconds
  */
 export function timeout(ms: number) {
-  return new Promise(resolve => {
+  return new Promise<void>(resolve => {
     setTimeout(resolve, ms);
   })
 }
@@ -79,3 +79,7 @@ export function assign(root: Record<string, any>, path: string, value: any) {
 
   target[field] = value;
 }
+
+export function isString(input: any): input is String {
+  return typeof input === 'string';
+};

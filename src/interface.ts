@@ -6,15 +6,17 @@ export type LoopCondition = {
   tillSelector: string;
 };
 
+export type TargetQuery = string | {
+  selector: string;
+  attr?: string;
+}
+
 export type Action = {
   type: 'delay'; // delay for ms
   ms: number;
 } | {
   type: 'capture'; // capture fields
-  fields: Record<string, {
-    selector?: string;
-    attr?: string;
-  }>;
+  fields: Record<string, TargetQuery>;
 } | {
   type: 'event'; // trigger an event on the page
   event: 'click' | 'focus' | 'blur';
@@ -49,7 +51,7 @@ export interface Task {
   scheme: ActionScheme;
 }
 
-export interface Execution {
+export interface ExecutionConfig {
   parallel: number;
-  filename: string; // export filename
+  intervalMs: number;
 }

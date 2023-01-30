@@ -1,5 +1,5 @@
 import { Action, LoopCondition } from "@/interface";
-import { assign, last, timeout } from "@/util/lang";
+import { assign, isString, last, timeout } from "@/util/lang";
 
 export class ActionRunner {
   private static testCondition(condition: LoopCondition, ctx: {
@@ -67,7 +67,12 @@ export class ActionRunner {
           break;
         }
         case 'capture': {
-          for (const [field, { selector, attr }] of Object.entries(action.fields)) {
+          for (const [field, targetQuery] of Object.entries(action.fields)) {
+            const { selector, attr } = isString(targetQuery) ? {
+              selector: targetQuery,
+              attr: '',
+            } : targetQuery;
+
             const target = selector ?
               node.querySelector(selector) :
               node;
