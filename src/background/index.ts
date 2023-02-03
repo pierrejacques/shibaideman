@@ -6,7 +6,7 @@ import { runningStatePorta } from '@/portas/store';
 import { getItemMessagePorta, openConsoleMessagePorta, postItemMessagePorta, startTaskMessagePorta } from '@/portas/message';
 import { ParallelScheduler } from '@/core/parallel-scheduler';
 import { PageIterable } from '@/core/page-iterable';
-import { Pages } from '@/interface';
+import { PageResult, Pages } from '@/interface';
 import { Task } from '@/core/task';
 
 const INTERVAL = 2000;
@@ -47,7 +47,7 @@ const run = async () => {
   startTaskMessagePorta.subscribe(
     () => {
       // TODO: results 结构的完善，顺序先后的问题
-      const results: any[] = [];
+      const results: PageResult[] = [];
 
       const task = new Task(
         new PageIterable(testPages),

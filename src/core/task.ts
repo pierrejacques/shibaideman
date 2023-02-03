@@ -1,16 +1,16 @@
-import { ActionScheme } from "@/interface";
+import { ActionScheme, PageResult, UrlInfo } from "@/interface";
 import { actionsDoneMessagePorta } from "@/portas/message";
 import { createResolvable, timeout } from "@/util/lang";
 import { ExecutiveIterator, Schedulable } from "./interface";
 
 export class Task {
   constructor(
-    private iterable: Iterable<string>,
+    private iterable: Iterable<UrlInfo>,
     private schedulable: Schedulable,
     private actionScheme: ActionScheme,
   ) { }
 
-  run(onResult?: (result: any) => void, onFinished?: () => void): () => void {
+  run(onResult?: (result: PageResult) => void, onFinished?: () => void): () => void {
     let done = false;
 
     const iterator = this.iterable[Symbol.iterator]();
@@ -48,10 +48,11 @@ export class Task {
         let tabId: number;
 
         const actionResolvable = createResolvable<any>();
+        const page = next.value as UrlInfo;
 
         chrome
           .tabs
-          .create({ url: next.value as string })
+          .create({ url: page.url })
           .then(({ id }) => {
             tabId = id;
             tabResolveMap.set(id, actionResolvable.resolve);
@@ -63,8 +64,8 @@ export class Task {
         Promise.race([
           timeout(30000), // timeout for 30seconds
           actionResolvable.promise.then(
-            (result) => {
-              onResult(result);
+            (data) => {
+              onResult({ data, page });
             }
           )
         ]).finally(() => {

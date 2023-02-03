@@ -55,3 +55,17 @@ export interface ExecutionConfig {
   parallel: number;
   intervalMs: number;
 }
+
+export interface UrlInfo {
+  url: string;
+  query?: Record<string, string>;
+};
+
+export interface PageData {
+  [field: string]: string | PageData;
+}
+
+export interface PageResult {
+  page: UrlInfo;
+  data: PageData;
+}

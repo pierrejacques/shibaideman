@@ -1,7 +1,7 @@
-import { Pages } from "@/interface";
+import { Pages, UrlInfo } from "@/interface";
 import { isString } from "@/util/lang";
 
-export class PageIterable implements Iterable<string> {
+export class PageIterable implements Iterable<UrlInfo> {
   private static * traverseIndex(maxs: number[]): Generator<number[]> {
     const [head, ...rest] = maxs;
 
@@ -34,6 +34,7 @@ export class PageIterable implements Iterable<string> {
 
       type ValueRef = {
         value: string;
+        name: string;
       };
 
       const fieldValueRefs: Record<string, ValueRef> = {};
@@ -65,6 +66,7 @@ export class PageIterable implements Iterable<string> {
 
           const ref: ValueRef = {
             value: null,
+            name,
           };
           fieldValueRefs[name] = ref;
           parts.push(ref);
@@ -72,7 +74,7 @@ export class PageIterable implements Iterable<string> {
       }
 
       if (!fields.length) {
-        yield template;
+        yield { url: template };
       } else {
         const indexesIterator = PageIterable.traverseIndex(
           fields.map(({ values }) => values.length)
@@ -86,7 +88,14 @@ export class PageIterable implements Iterable<string> {
             fieldValueRefs[name].value = values[index];
           });
 
-          yield parts.map(part => isString(part) ? part : part.value).join('');
+          const url = parts.map(part => isString(part) ? part : part.value).join('');
+          const query: Record<string, string> = Object.fromEntries(
+            parts.filter(item => !isString(item)).map(
+              ({ name, value }: ValueRef) => [name, value]
+            )
+          );
+
+          yield { url, query };
         }
       }
     }

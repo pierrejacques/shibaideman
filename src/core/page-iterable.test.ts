@@ -14,7 +14,7 @@ describe('PageIterable', () => {
 
     const iterated = Array.from(iterator);
 
-    expect(iterated).toEqual(urls);
+    expect(iterated).toEqual(urls.map(url => ({ url })));
   });
 
   test("Template URL iteration", () => {
@@ -40,13 +40,16 @@ describe('PageIterable', () => {
       ]
     });
 
-    const set = new Set(iterator);
+    const arr = Array.from(iterator);
 
+    const test = []
     for (const k of keyword) {
       for (const p of page) {
         const url = `https://www.dummy.com?q=${k}&page=${p}&from=share`;
-        expect(set.has(url)).toBeTruthy();
+        test.push({ url, query: { keyword: k, page: p } })
       }
     }
+
+    expect(arr).toEqual(test);
   })
 });
