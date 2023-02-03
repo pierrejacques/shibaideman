@@ -9,6 +9,9 @@ export const openConsoleMessagePorta = new MessagePorta<void>('console/open');
 
 export const getItemMessagePorta = new MessagePorta<void>('item/get');
 
-export const responseItemMessagePorta = new MessagePorta<Record<number, string>>('item/response');
+export const startTaskMessagePorta = new MessagePorta<void>('task/start');
 
-export const startTaskMessagePorta = new MessagePorta<[number, string][]>('task/start');
+export const actionsDoneMessagePorta = new MessagePorta<{
+  tabId: number;
+  result: any;
+}>('actions/done');

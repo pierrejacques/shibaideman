@@ -83,3 +83,57 @@ export function assign(root: Record<string, any>, path: string, value: any) {
 export function isString(input: any): input is String {
   return typeof input === 'string';
 };
+
+export interface Resolvable<T> {
+  resolve(value?: T): void;
+  reject(error: Error): void;
+  readonly resolved: boolean;
+  readonly rejected: boolean;
+  readonly resolveValue: T;
+  readonly error: Error;
+  readonly promise: Promise<T>;
+}
+
+export const createResolvable = <T = void>(): Resolvable<T> => {
+  let resolve: Resolvable<T>["resolve"];
+  let reject: Resolvable<T>['reject'];
+  let resolved = false;
+  let rejected = false;
+  let resolveValue: T;
+  let error: Error;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return {
+    resolve: (value) => {
+      if (!resolved && !rejected) {
+        resolved = true;
+        resolveValue = value;
+        resolve(value);
+      }
+    },
+    reject: (err) => {
+      if (!resolved && !rejected) {
+        rejected = true;
+        error = err;
+        reject(err);
+      }
+    },
+    get resolved() {
+      return resolved;
+    },
+    get rejected() {
+      return rejected;
+    },
+    get resolveValue() {
+      return resolveValue;
+    },
+    get error() {
+      return error;
+    },
+    get promise() {
+      return promise;
+    },
+  };
+};

@@ -1,11 +1,8 @@
 import { ExecutionConfig } from "@/interface";
 import { timeout } from "@/util/lang";
+import { ExecutiveIterator, Schedulable } from "./interface";
 
-export interface ExecuteNext {
-  (): null | Promise<void>;
-}
-
-export class Scheduler {
+export class ParallelScheduler implements Schedulable {
   private resolve: () => void = null;
 
   private noMore = false;
@@ -23,15 +20,14 @@ export class Scheduler {
     this.intervalMs = intervalMs;
   }
 
-  public start(executeNext: ExecuteNext): Promise<void> {
+  public start(executiveIterator: ExecutiveIterator): Promise<void> {
     const promise = new Promise<void>((resolve) => { this.resolve = resolve });
-
-    this.tryExecute(executeNext);
+    this.tryExecute(executiveIterator);
 
     return promise;
   }
 
-  public stop() {
+  public halt() {
     if (this.resolve) {
       this.resolve();
       this.resolve = null;
@@ -40,7 +36,7 @@ export class Scheduler {
     }
   }
 
-  private tryExecute(executeNext: ExecuteNext) {
+  private tryExecute(executeNext: ExecutiveIterator) {
     if (!this.resolve) return;
     if (this.noMore) {
       this.tryStop();
@@ -74,7 +70,7 @@ export class Scheduler {
 
   private tryStop() {
     if (!this.occupied) {
-      this.stop();
+      this.halt();
     }
   }
 }

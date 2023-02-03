@@ -1,7 +1,7 @@
 import { Pages } from "@/interface";
 import { isString } from "@/util/lang";
 
-export class PageIterator implements Iterable<string> {
+export class PageIterable implements Iterable<string> {
   private static * traverseIndex(maxs: number[]): Generator<number[]> {
     const [head, ...rest] = maxs;
 
@@ -74,7 +74,7 @@ export class PageIterator implements Iterable<string> {
       if (!fields.length) {
         yield template;
       } else {
-        const indexesIterator = PageIterator.traverseIndex(
+        const indexesIterator = PageIterable.traverseIndex(
           fields.map(({ values }) => values.length)
         );
 
