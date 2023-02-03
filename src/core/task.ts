@@ -10,10 +10,8 @@ export class Task {
     private actionScheme: ActionScheme,
   ) { }
 
-  run(callback?: (results: any[]) => void): () => void {
+  run(onResult?: (result: any) => void, onFinished?: () => void): () => void {
     let done = false;
-
-    const results: any[] = [];
 
     const iterator = this.iterable[Symbol.iterator]();
     const tabResolveMap = new Map<number, (result: any) => void>();
@@ -66,7 +64,7 @@ export class Task {
           timeout(30000), // timeout for 30seconds
           actionResolvable.promise.then(
             (result) => {
-              results.push(result);
+              onResult(result);
             }
           )
         ]).finally(() => {
@@ -84,14 +82,11 @@ export class Task {
       .finally(() => {
         done = true;
         cleanup?.();
-        if (callback) {
-          callback(results);
-        }
+        onFinished?.();
       });
 
     return () => {
       if (!done) {
-        done = true;
         this.schedulable.halt();
       }
     };

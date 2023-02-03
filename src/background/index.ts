@@ -46,6 +46,9 @@ const testPages: Pages = {
 const run = async () => {
   startTaskMessagePorta.subscribe(
     () => {
+      // TODO: results 结构的完善，顺序先后的问题
+      const results: any[] = [];
+
       const task = new Task(
         new PageIterable(testPages),
         new ParallelScheduler({
@@ -57,9 +60,10 @@ const run = async () => {
         }
       );
 
-      task.run((results: any[]) => {
-        console.log('results', results);
-      });
+      task.run(
+        result => results.push(result),
+        () => console.log('results', results)
+      );
     }
   );
 
