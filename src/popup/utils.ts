@@ -1,4 +1,4 @@
-function downloadFile(data: any, fileName: string) {
+export function downloadFile(data: any, fileName: string) {
   const str = JSON.stringify(data);
   const blob = new Blob([str]);
   const url = URL.createObjectURL(blob);
@@ -9,7 +9,7 @@ function downloadFile(data: any, fileName: string) {
   anchor.click();
 };
 
-function readJSONFile(callback: (obj: any) => void) {
+export function readJSONFile(callback: (obj: any) => void) {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = 'application/json';

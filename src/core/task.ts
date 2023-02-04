@@ -5,9 +5,9 @@ import { ExecutiveIterator, Schedulable } from "./interface";
 
 export class Task {
   constructor(
-    private iterable: Iterable<UrlInfo>,
-    private schedulable: Schedulable,
-    private actionScheme: ActionScheme,
+    private iterable: Iterable<UrlInfo>, // what are the pages
+    private schedulable: Schedulable, // how to schedule the pages
+    private actionScheme: ActionScheme, // do what on each page
   ) { }
 
   run(onResult?: (result: PageResult) => void, onFinished?: () => void): () => void {

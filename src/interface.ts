@@ -56,6 +56,12 @@ export interface ExecutionConfig {
   intervalMs: number;
 }
 
+export interface TaskCreation {
+  pages: Pages;
+  actionScheme: ActionScheme;
+  executionConfig: ExecutionConfig;
+}
+
 export interface UrlInfo {
   url: string;
   query?: Record<string, string>;
