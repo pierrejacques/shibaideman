@@ -73,8 +73,8 @@ export function assign(root: Record<string, any>, path: string, value: any) {
   for (const dir of dirs) {
     if (!target[dir]) {
       target[dir] = {};
-      target = target[dir]
     }
+    target = target[dir]
   }
 
   target[field] = value;
