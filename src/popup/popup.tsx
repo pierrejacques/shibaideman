@@ -1,11 +1,12 @@
-import React, { FC, memo, ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { FC, memo, ReactNode, useEffect, useState } from 'react';
 import { Button, Spin } from 'antd';
 import { cancelTaskMessagePorta, requestTaskResultsMessagePorta, startTaskMessagePorta, taskResultsMessagePorta } from '@/portas/message';
 import { useStorePorta } from '@/util/hooks';
 import { runningStatePorta } from '@/portas/store';
 import { RunningState } from '@/enum';
 import { PageResult, TaskCreation } from '@/interface';
-import { downloadFile, readJSONFile } from './utils';
+import { downloadFile, downloadJSONFile, readFile, readJSONFile } from './utils';
+import { convertTableLike } from '@/util/format';
 
 import 'antd/dist/antd.less';
 import './popup.less';
@@ -26,12 +27,6 @@ const Operator: FC<{
   <Button disabled={disabled} size="large" type={primary ? 'primary' : 'default'} danger={danger} className='button' onClick={onClick} >{children}</Button>
 ))
 
-enum CreateTaskStage {
-  UploadingUrlScheme,
-  UploadingActionScheme,
-  SetScheduleConfigs,
-}
-
 const INITIAL_TASK_CREATION: TaskCreation = {
   pages: null,
   actionScheme: null,
@@ -41,7 +36,13 @@ const INITIAL_TASK_CREATION: TaskCreation = {
   },
 };
 
-export const StartTaskOperation: FC = () => {
+enum CreateTaskStage {
+  UploadingUrlScheme,
+  UploadingActionScheme,
+  SetScheduleConfigs,
+}
+
+const StartTaskOperation: FC = () => {
   const [status, setStatus] = useState<CreateTaskStage>(CreateTaskStage.UploadingUrlScheme);
 
   const [, setTaskCreation] = useState<TaskCreation>(INITIAL_TASK_CREATION);
@@ -86,7 +87,7 @@ export const StartTaskOperation: FC = () => {
   }
 };
 
-export const ExportOperation: FC = () => {
+const ExportOperation: FC = () => {
   const [results, setResults] = useState<PageResult[]>(null);
 
   useEffect(() => {
@@ -98,7 +99,7 @@ export const ExportOperation: FC = () => {
 
   const onExport = () => {
     // reset to idle
-    downloadFile(results, 'results.json'); // TODO: different name
+    downloadJSONFile(results, 'results.json'); // TODO: different name
   }
 
   return (
@@ -113,7 +114,7 @@ export const ExportOperation: FC = () => {
   )
 }
 
-export const Operation: FC = () => {
+const CrawlerOperation: FC = () => {
   const [runningState] = useStorePorta(runningStatePorta);
 
   switch (runningState) {
@@ -128,13 +129,53 @@ export const Operation: FC = () => {
   }
 }
 
+const ConvertOperation: FC = () => {
+  const [state, setState] = useState<{
+    content: string;
+    name: string;
+  }>(null);
+
+  return state ? (
+    <Operator onClick={() => readJSONFile(config => {
+      try {
+        const output = convertTableLike(config, state.content);
+        const outputFileName = state.name.replace(new RegExp(`${config.from}$`), config.to);
+        downloadFile(output, outputFileName);
+      } catch (e) {
+        console.log('convert error', e);
+      }
+      setState(null);
+    })} >
+      选择转换配置文件
+    </Operator>
+  ) : (
+    <Operator onClick={() => readFile('*', (content, name) => {
+      setState({
+        content,
+        name
+      });
+    })} >
+      选择文件进行转换
+    </Operator>
+  )
+}
+
 export const Popup: FC = () => (
   <>
     <header className="header">
       <h1 className="title">ShiBaiDeMan</h1>
     </header>
-    <footer className="footer">
-      <Operation />
-    </footer>
+    <section className="section">
+      <h2>Crawler</h2>
+      <div className="operations">
+        <CrawlerOperation />
+      </div>
+    </section>
+    <section className="section">
+      <h2>Converter</h2>
+      <div className="operations">
+        <ConvertOperation />
+      </div>
+    </section>
   </>
 )

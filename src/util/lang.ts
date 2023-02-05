@@ -80,6 +80,33 @@ export function assign(root: Record<string, any>, path: string, value: any) {
   target[field] = value;
 }
 
+export function get(root: any, path: string) {
+  if (!path) return root;
+
+  const dirs = path.split('.');
+
+  let current = root;
+  for (let i = 0; i < dirs.length; i++) {
+    const dir = dirs[i];
+
+    if (dir === '*') {
+
+      if (Array.isArray(current)) {
+        return current.map(
+          item => {
+            const subPath = dirs.slice(i + 1).join('.');
+            return get(item, subPath)
+          }
+        )
+      }
+    } else {
+      current = current?.[dir]
+    }
+  }
+
+  return current;
+}
+
 export function isString(input: any): input is String {
   return typeof input === 'string';
 };

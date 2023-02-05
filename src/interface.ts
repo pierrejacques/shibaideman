@@ -75,3 +75,11 @@ export interface PageResult {
   page: UrlInfo;
   data: PageData;
 }
+
+export type ConvertableFormat = 'json' | 'csv';
+
+export interface ConvertConfig {
+  from: ConvertableFormat;
+  to: ConvertableFormat;
+  mapping: Record<string, string>;
+}
