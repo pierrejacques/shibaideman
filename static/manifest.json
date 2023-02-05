@@ -1,6 +1,6 @@
 {
-  "name": "百度信息",
-  "description": "百度信息",
+  "name": "ShiBaiDeMan",
+  "description": "Yangchi Crawler for YangChi Users",
   "background": {
     "service_worker": "background.bundle.js"
   },
