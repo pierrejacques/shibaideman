@@ -52,7 +52,10 @@ export class Task {
 
         chrome
           .tabs
-          .create({ url: page.url })
+          .create({
+            url: page.url,
+            active: false,
+          })
           .then(({ id }) => {
             tabId = id;
             tabResolveMap.set(id, actionResolvable.resolve);
