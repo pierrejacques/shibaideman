@@ -3,7 +3,7 @@ import { runningStatePorta } from '@/portas/store';
 import { cancelTaskMessagePorta, startTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
 import { ParallelScheduler } from '@/core/parallel-scheduler';
 import { PageIterable } from '@/core/page-iterable';
-import { PageResult, Pages } from '@/interface';
+import { PageResult } from '@/interface';
 import { Task } from '@/core/task';
 
 const run = async () => {
@@ -28,7 +28,6 @@ const run = async () => {
         run: task.run(
           result => results.push(result),
           () => {
-            console.log('complete:', results);
             runningStatePorta.push(RunningState.Completed);
 
             const popupRequestSubcription = requestTaskResultsMessagePorta.subscribe(

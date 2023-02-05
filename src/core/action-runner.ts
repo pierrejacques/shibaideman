@@ -1,5 +1,6 @@
 import { Action, LoopCondition } from "@/interface";
 import { assign, isString, last, timeout } from "@/util/lang";
+import { isHTMLElement, isSVGElement } from '@/util/dom';
 
 export class ActionRunner {
   private static testCondition(condition: LoopCondition, ctx: {
@@ -77,8 +78,14 @@ export class ActionRunner {
               node.querySelector(selector) :
               node;
 
-            if (isHTMLElement(target)) {
-              assign(obj, field, attr ? target.getAttribute(attr) : target.innerText);
+            if (attr) {
+              if (isHTMLElement(target) || isSVGElement(target)) {
+                assign(obj, field, target.getAttribute(attr));
+              }
+            } else {
+              if (isHTMLElement(target)) {
+                assign(obj, field, target.innerText);
+              }
             }
           }
           break;
@@ -120,7 +127,7 @@ export class ActionRunner {
 
               if (field) {
                 nextObj = {};
-                arr.push({});
+                arr.push(nextObj);
               }
 
               await this.runActions(target, nextObj, actions);

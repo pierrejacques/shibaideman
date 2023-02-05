@@ -44,7 +44,7 @@ const INITIAL_TASK_CREATION: TaskCreation = {
 export const StartTaskOperation: FC = () => {
   const [status, setStatus] = useState<CreateTaskStage>(CreateTaskStage.UploadingUrlScheme);
 
-  const [taskCreation, setTaskCreation] = useState<TaskCreation>(INITIAL_TASK_CREATION);
+  const [, setTaskCreation] = useState<TaskCreation>(INITIAL_TASK_CREATION);
 
   const cancelButton = (
     <Operator primary danger onClick={() => setStatus(CreateTaskStage.SetScheduleConfigs)} >取消</Operator>
@@ -64,8 +64,11 @@ export const StartTaskOperation: FC = () => {
       return (
         <>
           <Operator onClick={() => readJSONFile(actionScheme => {
-            setTaskCreation(prev => ({ ...prev, actionScheme }));
-            startTaskMessagePorta.push(taskCreation);
+            setTaskCreation(prev => {
+              const next = { ...prev, actionScheme }
+              startTaskMessagePorta.push(next);
+              return next;
+            });
           })} >
             选择 Action 文件
           </Operator>

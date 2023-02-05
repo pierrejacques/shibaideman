@@ -71,9 +71,11 @@ export class Task {
         ]).finally(() => {
           if (tabId) {
             tabResolveMap.delete(tabId);
-            chrome.tabs.remove(tabId);
+            chrome.tabs.remove(tabId).catch(() => { });
           };
           resolve();
+        }).catch((e) => {
+          console.log('error occurred in page', page.url, (e as Error).message);
         });
       });
     }

@@ -1,17 +1,32 @@
 import { actionsDoneMessagePorta } from "@/portas/message";
+import { ActionRunner } from '@/core/action-runner';
 
 async function run() {
   chrome.runtime.onMessage.addListener(message => {
     if (Array.isArray(message?.actions)) {
       // action scheme received
-      setTimeout(() => {
-        actionsDoneMessagePorta.push({
-          tabId: message.tabId,
-          result: {
-            message: `done: ${window.location.search}`,
+      const runner = new ActionRunner(message.actions);
+
+      runner
+        .run()
+        .then(
+          (result) => {
+            actionsDoneMessagePorta.push({
+              tabId: message.tabId,
+              result
+            });
           }
-        });
-      }, 1000);
+        )
+        .catch(
+          (e) => {
+            actionsDoneMessagePorta.push({
+              tabId: message.tabId,
+              result: {
+                error: (e as Error).message
+              }
+            });
+          }
+        )
     }
   });
 };
