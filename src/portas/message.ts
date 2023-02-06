@@ -1,5 +1,5 @@
 import { PageResult, TaskCreation } from "@/interface";
-import { MessagePorta } from "@/util/porta";
+import { MessagePorta } from "@/utils/porta";
 
 export const openConsoleMessagePorta = new MessagePorta<void>('console/open');
 

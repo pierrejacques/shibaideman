@@ -1,5 +1,5 @@
 import { ExecutionConfig } from "@/interface";
-import { timeout } from "@/util/lang";
+import { timeout } from "@/utils/lang";
 import { ExecutiveIterator, Schedulable } from "./interface";
 
 export class ParallelScheduler implements Schedulable {

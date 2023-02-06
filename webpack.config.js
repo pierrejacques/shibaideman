@@ -36,8 +36,8 @@ const options = {
           loader: require.resolve('less-loader'),
           options: {
             modifyVars: {
-              'primary-color': '#22ADE4',
-              'border-radius-base': '8px',
+              'primary-color': '#D4282E',
+              'border-radius-base': '12px',
             },
             javascriptEnabled: true,
           }

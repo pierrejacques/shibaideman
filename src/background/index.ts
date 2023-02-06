@@ -1,5 +1,5 @@
 import { RunningState } from '@/enum';
-import { runningStatePorta } from '@/portas/store';
+import { storePorta } from '@/portas/store';
 import { cancelTaskMessagePorta, startTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
 import { ParallelScheduler } from '@/core/parallel-scheduler';
 import { PageIterable } from '@/core/page-iterable';
@@ -8,13 +8,19 @@ import { Task } from '@/core/task';
 
 const run = async () => {
   // init idle
-  runningStatePorta.push(RunningState.Idle);
+  // storePorta.push({
+  //   runningState: RunningState.Idle,
+  //   doneCount: 0,
+  // });
 
   startTaskMessagePorta.subscribe(
     ({ pages, actionScheme, executionConfig }) => {
-      if (runningStatePorta.getValue() !== RunningState.Idle) return;
+      if (storePorta.getValue().runningState !== RunningState.Idle) return;
 
-      runningStatePorta.push(RunningState.Running);
+      storePorta.push({
+        runningState: RunningState.Running,
+        doneCount: 0,
+      });
 
       const results: PageResult[] = [];
 
@@ -26,9 +32,18 @@ const run = async () => {
 
       const subcriptions = {
         run: task.run(
-          result => results.push(result),
+          result => {
+            results.push(result);
+            storePorta.push({
+              runningState: RunningState.Running,
+              doneCount: results.length
+            })
+          },
           () => {
-            runningStatePorta.push(RunningState.Completed);
+            storePorta.push({
+              runningState: RunningState.Completed,
+              doneCount: results.length,
+            });
 
             const popupRequestSubcription = requestTaskResultsMessagePorta.subscribe(
               () => {
@@ -37,7 +52,7 @@ const run = async () => {
             )
 
             // for unsubscription purpose
-            const stateSubscription = runningStatePorta.subscribe(runningState => {
+            const stateSubscription = storePorta.subscribe(({ runningState }) => {
               if (runningState !== RunningState.Completed) {
                 // CHECK: cleanup
                 popupRequestSubcription();

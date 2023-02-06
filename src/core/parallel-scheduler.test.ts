@@ -1,4 +1,4 @@
-import { timeout } from "@/util/lang";
+import { timeout } from "@/utils/lang";
 import { ParallelScheduler } from "./parallel-scheduler";
 
 describe('Scheduler', () => {

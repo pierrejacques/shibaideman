@@ -1,3 +1,6 @@
+import { Action, Pages } from "@/interface";
+import { isString } from "@/utils/lang";
+
 export function downloadFile(str: string, filename: string) {
   const blob = new Blob([str]);
   const url = URL.createObjectURL(blob);
@@ -13,7 +16,7 @@ export function downloadJSONFile(data: any, filename: string) {
   downloadFile(str, filename);
 };
 
-export function readFile(accept: string, callback: (fileStr: string, filename: string) => void) {
+export function selectFile(accept: string, callback: (file: File) => void) {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = accept;
@@ -21,24 +24,66 @@ export function readFile(accept: string, callback: (fileStr: string, filename: s
     const list = Array.from(input.files);
     if (list.length) {
       const file = list[0];
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        const fileStr = e.target.result as string;
-        callback(fileStr, file.name);
-      };
-      reader.readAsText(file);
+      callback(file);
     }
   };
   input.click();
 }
 
-export function readJSONFile(callback: (obj: any, filename: string) => void) {
-  readFile('application/json', (str, filename) => {
-    try {
-      const fileContent = JSON.parse(str);
-      callback(fileContent, filename);
-    } catch (e) {
-      window.alert((e as Error).message);
+export function readFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const fileStr = e.target.result as string;
+      resolve(fileStr);
+    };
+    reader.onerror = (e) => reject(e);
+    reader.readAsText(file);
+  })
+}
+
+export function validatePages(pages: Pages) {
+  if (!Array.isArray(pages?.urls)) {
+    throw new Error('pages.urls must be an array');
+  }
+
+  for (const url of pages.urls) {
+    if (isString(url)) continue;
+
+    if (!url?.template) {
+      throw new Error('no field template in url');
     }
-  });
+  }
+}
+
+export function validateActions(actions: Action[]) {
+  if (!Array.isArray(actions)) {
+    throw new Error('actions must be an array');
+  }
+
+  for (const action of actions) {
+    switch (action?.type) {
+      case 'capture':
+        if (!action.fields) throw new Error('invalid capture action, no "fields"');
+        break;
+      case 'children':
+        if (!action.selector) throw new Error('invalid capture action, no "fields"');
+        validateActions(action.actions);
+        break;
+      case 'delay':
+        if (!action.ms) throw new Error('invalid delay action, no "ms"');
+        break;
+      case 'event':
+        if (!['click', 'focus', 'blur'].includes(action.event)) throw new Error('invalid event action, unknown event');
+        if (!action.selector) throw new Error('invalid event action, no "selector"');
+        break;
+      case 'loop':
+        if (!action.condition) throw new Error('invalid loop action, no "condition"');
+        break;
+      case 'loop-end':
+        break;
+      default:
+        throw new Error(`unknown action type`)
+    }
+  }
 }

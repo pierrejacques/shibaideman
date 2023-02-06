@@ -1,4 +1,12 @@
 import { RunningState } from "@/enum";
-import { StorePorta } from "@/util/porta";
+import { StorePorta } from "@/utils/porta";
 
-export const runningStatePorta = new StorePorta('runnnig-state', RunningState.Idle);
+export interface Store {
+  runningState: RunningState;
+  doneCount: number;
+}
+
+export const storePorta = new StorePorta<Store>('runnnig-state', {
+  runningState: RunningState.Idle,
+  doneCount: 0,
+});

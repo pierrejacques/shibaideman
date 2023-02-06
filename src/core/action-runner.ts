@@ -1,6 +1,6 @@
 import { Action, LoopCondition } from "@/interface";
-import { assign, isString, last, timeout } from "@/util/lang";
-import { isHTMLElement, isSVGElement } from '@/util/dom';
+import { assign, isString, last, timeout } from "@/utils/lang";
+import { isHTMLElement, isSVGElement } from '@/utils/dom';
 
 export class ActionRunner {
   private static testCondition(condition: LoopCondition, ctx: {

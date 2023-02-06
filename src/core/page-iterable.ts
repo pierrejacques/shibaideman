@@ -1,5 +1,5 @@
 import { Pages, UrlInfo } from "@/interface";
-import { isString } from "@/util/lang";
+import { isString } from "@/utils/lang";
 
 export class PageIterable implements Iterable<UrlInfo> {
   private static * traverseIndex(maxs: number[]): Generator<number[]> {

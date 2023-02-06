@@ -1,8 +1,11 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Popup } from './popup';
+import { View } from './view';
+
+import 'antd/dist/antd.less';
+import './index.less';
 
 render(
-  <Popup />,
+  <View />,
   globalThis.document.getElementById('popup-container')
 );
