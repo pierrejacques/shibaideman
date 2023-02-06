@@ -1,6 +1,6 @@
 import { ActionScheme, PageResult, UrlInfo } from "@/interface";
 import { actionsDoneMessagePorta } from "@/portas/message";
-import { createResolvable, timeout } from "@/utils/lang";
+import { catchRuntimeError, createResolvable, timeout } from "@/utils/lang";
 import { ExecutiveIterator, Schedulable } from "./interface";
 
 export class Task {
@@ -25,7 +25,7 @@ export class Task {
             chrome.tabs.sendMessage<ActionScheme & { tabId: number }>(id, {
               ...this.actionScheme,
               tabId: id,
-            });
+            }, catchRuntimeError);
           }
         }
 

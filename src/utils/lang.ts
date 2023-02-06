@@ -164,3 +164,8 @@ export const createResolvable = <T = void>(): Resolvable<T> => {
     },
   };
 };
+
+export const catchRuntimeError = () => {
+  // could have error
+  const runtimeError = chrome.runtime.lastError;
+};

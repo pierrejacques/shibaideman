@@ -1,4 +1,4 @@
-import { uniqueId } from "./lang";
+import { catchRuntimeError, uniqueId } from "./lang";
 
 export interface Subscription {
   (): void;
@@ -150,7 +150,7 @@ export class StorePorta<T> {
       storeName: this.storeName,
       sender: this.id,
       ...message,
-    });
+    }, catchRuntimeError);
   }
 
   subscribe(subscriber: StorePortaSubscriber<T>): Subscription {
@@ -211,6 +211,6 @@ export class MessagePorta<T> {
       type: 'message-porta',
       eventName: this.eventName,
       data: messageData,
-    });
+    }, catchRuntimeError);
   };
 }
