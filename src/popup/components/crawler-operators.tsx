@@ -46,17 +46,35 @@ export const CrawlerOperators: FC = () => {
 
   if (!store) return <Spin />
 
-  const { runningState } = store;
+  const { runningState, doneCount } = store;
 
   switch (runningState) {
     case RunningState.Completed:
-      return <ExportOperation />
+      return (
+        <>
+          <p className="total">任务完成，共抓取 {doneCount} 条数据</p>
+          <div className="operators">
+            <ExportOperation />
+          </div>
+        </>
+      );
     case RunningState.Running:
-      return <Operator onClick={() => cancelTaskMessagePorta.push()} >终止抓取任务</Operator>;
+      return (
+        <>
+          <p className="total">已抓取 {doneCount} 条数据</p>
+          <div className="operators">
+            <Operator onClick={() => cancelTaskMessagePorta.push()} >终止任务</Operator>
+          </div>
+        </>
+      );
     case RunningState.Idle:
-      return <Operator primary onClick={() => setRouter(Route.TaskCreation)} >
-        创建抓取任务
-      </Operator>
+      return (
+        <div className="operators">
+          <Operator primary onClick={() => setRouter(Route.TaskCreation)} >
+            创建抓取任务
+          </Operator>
+        </div>
+      );
     default:
       return null;
   }

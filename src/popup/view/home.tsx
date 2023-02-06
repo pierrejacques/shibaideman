@@ -12,9 +12,7 @@ export const Home: FC = () => {
       title="失败的Man"
     >
       <h2 className="subtitle" >网页抓取</h2>
-      <div className="operators">
-        <CrawlerOperators />
-      </div>
+      <CrawlerOperators />
       <h2 className="subtitle" >数据转换</h2>
       <div className="operators">
         <Operator primary onClick={() => setRoute(Route.Convertor)} >
