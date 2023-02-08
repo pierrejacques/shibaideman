@@ -32,6 +32,7 @@ const ExportOperation: FC = () => {
       <Operator onClick={() => storePorta.push({
         runningState: RunningState.Idle,
         doneCount: 0,
+        voidCount: 0,
       })} >
         取消
       </Operator>
@@ -46,13 +47,15 @@ export const CrawlerOperators: FC = () => {
 
   if (!store) return <Spin />
 
-  const { runningState, doneCount } = store;
+  const { runningState, doneCount, voidCount } = store;
+
+  const sumText = `抓取 ${doneCount} 条数据，其中空数据 ${voidCount} 条`;
 
   switch (runningState) {
     case RunningState.Completed:
       return (
         <>
-          <p className="total">任务完成，共抓取 {doneCount} 条数据</p>
+          <p className="total">任务完成，共{sumText}</p>
           <div className="operators">
             <ExportOperation />
           </div>
@@ -61,7 +64,7 @@ export const CrawlerOperators: FC = () => {
     case RunningState.Running:
       return (
         <>
-          <p className="total">已抓取 {doneCount} 条数据</p>
+          <p className="total">已{sumText}</p>
           <div className="operators">
             <Operator onClick={() => cancelTaskMessagePorta.push()} >终止任务</Operator>
           </div>

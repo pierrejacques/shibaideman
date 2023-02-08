@@ -1,3 +1,4 @@
+import { ResultCode } from "@/enum";
 import { ActionScheme, PageResult, UrlInfo } from "@/interface";
 import { actionsDoneMessagePorta } from "@/portas/message";
 import { catchRuntimeError, createResolvable, timeout } from "@/utils/lang";
@@ -10,7 +11,7 @@ export class Task {
     private actionScheme: ActionScheme, // do what on each page
   ) { }
 
-  run(onResult?: (result: PageResult) => void, onFinished?: () => void): () => void {
+  run(onResult?: (data: PageResult) => void, onFinished?: () => void): () => void {
     let done = false;
 
     const iterator = this.iterable[Symbol.iterator]();
@@ -47,7 +48,7 @@ export class Task {
       return new Promise<void>((resolve) => {
         let tabId: number;
 
-        const actionResolvable = createResolvable<any>();
+        const actionResolvable = createResolvable<Omit<PageResult, 'page'>>();
         const page = next.value as UrlInfo;
 
         chrome
@@ -65,13 +66,15 @@ export class Task {
           });
 
         Promise.race([
-          timeout(30000), // timeout for 30seconds
-          actionResolvable.promise.then(
-            (data) => {
-              onResult({ data, page });
-            }
-          )
-        ]).finally(() => {
+          timeout(30000).then(
+            () => ({ data: {}, code: ResultCode.Timeout })
+          ), // timeout for 30seconds
+          actionResolvable.promise
+        ]).then(
+          data => {
+            onResult({ ...data, page })
+          }
+        ).finally(() => {
           if (tabId) {
             tabResolveMap.delete(tabId);
             chrome.tabs.remove(tabId).catch(() => { });

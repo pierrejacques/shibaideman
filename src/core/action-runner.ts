@@ -1,6 +1,12 @@
-import { Action, LoopCondition } from "@/interface";
+import { Action, LoopCondition, PageResult } from "@/interface";
 import { assign, isString, last, timeout } from "@/utils/lang";
 import { isHTMLElement, isSVGElement } from '@/utils/dom';
+import { ResultCode } from "@/enum";
+
+interface RuntimeContext {
+  hasCaptureAction: boolean;
+  hasCaptued: boolean;
+}
 
 export class ActionRunner {
   private static testCondition(condition: LoopCondition, ctx: {
@@ -24,24 +30,39 @@ export class ActionRunner {
     this.actions = actions;
   }
 
-  public async run() {
+  public async run(): Promise<Omit<PageResult, 'page'>> {
     if (this.isRunning) {
       throw new Error('Busy: Actions already on the run');
     };
     this.isRunning = true;
 
-    const obj: Record<string, any> = {};
+    const data: Record<string, any> = {};
 
-    await this.runActions(document, obj, this.actions);
+    const context: RuntimeContext = {
+      hasCaptureAction: false,
+      hasCaptued: false,
+    }
 
-    return obj;
+    await this.runActions(document, data, this.actions, context);
+
+    return {
+      data,
+      code: context.hasCaptureAction && !context.hasCaptued ?
+        ResultCode.Void :
+        ResultCode.Success
+    };
   }
 
   public cancel() {
     this.isRunning = false;
   }
 
-  private async runActions(node: ParentNode, obj: Record<string, any>, actions: Action[]) {
+  private async runActions(
+    node: ParentNode,
+    obj: Record<string, any>,
+    actions: Action[],
+    context: RuntimeContext,
+  ) {
     const loopStack: {
       startIndex: number;
       count: number;
@@ -68,8 +89,9 @@ export class ActionRunner {
           break;
         }
         case 'capture': {
+          context.hasCaptureAction = true;
           for (const [field, targetQuery] of Object.entries(action.fields)) {
-            const { selector, attr } = isString(targetQuery) ? {
+            const { selector, attr, flag = '' } = isString(targetQuery) ? {
               selector: targetQuery,
               attr: '',
             } : targetQuery;
@@ -78,14 +100,21 @@ export class ActionRunner {
               node.querySelector(selector) :
               node;
 
+            let strVal: string;
+
             if (attr) {
               if (isHTMLElement(target) || isSVGElement(target)) {
-                assign(obj, field, target.getAttribute(attr));
+                strVal = target.getAttribute(attr);
               }
             } else {
               if (isHTMLElement(target)) {
-                assign(obj, field, target.innerText);
+                strVal = target.innerText;
               }
+            }
+
+            if (strVal != null) {
+              context.hasCaptued = true;
+              assign(obj, field, flag || strVal);
             }
           }
           break;
@@ -130,7 +159,7 @@ export class ActionRunner {
                 arr.push(nextObj);
               }
 
-              await this.runActions(target, nextObj, actions);
+              await this.runActions(target, nextObj, actions, context);
             }
           }
         }

@@ -1,3 +1,5 @@
+import { ResultCode } from "./enum";
+
 export type LoopCondition = {
   forCount: number;
 } | {
@@ -9,6 +11,7 @@ export type LoopCondition = {
 export type TargetQuery = string | {
   selector: string;
   attr?: string;
+  flag?: string;
 }
 
 export type Action = {
@@ -74,6 +77,7 @@ export interface PageData {
 export interface PageResult {
   page: UrlInfo;
   data: PageData;
+  code: ResultCode;
 }
 
 export type ConvertableFormat = 'json' | 'csv';

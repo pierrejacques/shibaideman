@@ -1,4 +1,4 @@
-import { RunningState } from '@/enum';
+import { ResultCode, RunningState } from '@/enum';
 import { storePorta } from '@/portas/store';
 import { cancelTaskMessagePorta, startTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
 import { ParallelScheduler } from '@/core/parallel-scheduler';
@@ -6,71 +6,67 @@ import { PageIterable } from '@/core/page-iterable';
 import { PageResult } from '@/interface';
 import { Task } from '@/core/task';
 
-const run = async () => {
-  // init idle
-  // storePorta.push({
-  //   runningState: RunningState.Idle,
-  //   doneCount: 0,
-  // });
-
-  startTaskMessagePorta.subscribe(
-    ({ pages, actionScheme, executionConfig }) => {
-      if (storePorta.getValue().runningState !== RunningState.Idle) return;
-
-      storePorta.push({
-        runningState: RunningState.Running,
-        doneCount: 0,
-      });
-
-      const results: PageResult[] = [];
-
-      const task = new Task(
-        new PageIterable(pages),
-        new ParallelScheduler(executionConfig),
-        actionScheme
-      );
-
-      const subcriptions = {
-        run: task.run(
-          result => {
-            results.push(result);
-            storePorta.push({
-              runningState: RunningState.Running,
-              doneCount: results.length
-            })
-          },
-          () => {
-            storePorta.push({
-              runningState: RunningState.Completed,
-              doneCount: results.length,
-            });
-
-            const popupRequestSubcription = requestTaskResultsMessagePorta.subscribe(
-              () => {
-                taskResultsMessagePorta.push(results);
-              }
-            )
-
-            // for unsubscription purpose
-            const stateSubscription = storePorta.subscribe(({ runningState }) => {
-              if (runningState !== RunningState.Completed) {
-                // CHECK: cleanup
-                popupRequestSubcription();
-                stateSubscription();
-              }
-            });
-          }
-        ),
-        cancel: cancelTaskMessagePorta.subscribe(() => {
-          subcriptions.run(); // cancel run
-          subcriptions.cancel(); // unsubscribe self
-        })
-      }
-    }
-  );
+const ref = {
+  results: [] as PageResult[],
+  cancelTaskRun: null as () => void,
 }
 
-run();
+// listen export request
+requestTaskResultsMessagePorta.subscribe(
+  () => {
+    taskResultsMessagePorta.push(ref.results);
+  }
+)
+
+function cancelTask() {
+  if (ref.cancelTaskRun) {
+    ref.cancelTaskRun();
+    ref.cancelTaskRun = null; // remove
+  }
+}
+
+// listen task cancel
+cancelTaskMessagePorta.subscribe(cancelTask)
+
+startTaskMessagePorta.subscribe(
+  ({ pages, actionScheme, executionConfig }) => {
+    if (storePorta.getValue().runningState !== RunningState.Idle) return;
+
+    const task = new Task(
+      new PageIterable(pages),
+      new ParallelScheduler(executionConfig),
+      actionScheme
+    );
+
+    ref.results = []; // clear
+    cancelTask(); // ensure the last task is canceled
+
+    storePorta.push({
+      runningState: RunningState.Running,
+      doneCount: 0,
+      voidCount: 0,
+    });
+
+    ref.cancelTaskRun = task.run(
+      (result) => {
+        ref.results.push(result);
+        storePorta.push(prev => ({
+          ...prev,
+          doneCount: prev.doneCount + 1,
+          voidCount: prev.voidCount + (
+            result.code === ResultCode.Void ? 1 : 0
+          ),
+        }))
+      },
+      () => {
+        storePorta.push(prev => ({
+          ...prev,
+          runningState: RunningState.Completed,
+        }));
+      }
+    );
+  }
+);
 
 // code preserved for reference
 // openConsoleMessagePorta.subscribe(

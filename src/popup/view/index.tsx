@@ -13,11 +13,12 @@ const dict: Record<Route, FC> = {
 export const View: FC = () => {
   const tuple = useState(Route.Home);
 
-  const ViewComponent = dict[tuple[0]];
+  const route = tuple[0];
+  const ViewComponent = dict[route];
 
   return (
     <routeContext.Provider value={tuple} >
-      <ViewComponent />
+      <ViewComponent key={route} />
     </routeContext.Provider>
   )
 }
