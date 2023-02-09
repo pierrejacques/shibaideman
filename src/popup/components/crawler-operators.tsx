@@ -1,40 +1,28 @@
 import { RunningState } from '@/enum';
-import { PageResult } from '@/interface';
 import { cancelTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
 import { storePorta } from '@/portas/store';
 import { useStorePorta } from '@/utils/hooks';
 import { Spin } from 'antd';
-import React, { FC, useContext, useEffect, useState } from 'react';
+import React, { FC, useContext, useEffect } from 'react';
 import { Route, routeContext } from '../route';
 import { downloadJSONFile } from '../utils';
 import { Operator } from './operator';
 
-const ExportOperation: FC = () => {
-  const [results, setResults] = useState<PageResult[]>(null);
-
+const ExportOperator: FC = () => {
   useEffect(() => {
-    requestTaskResultsMessagePorta.push();
     return taskResultsMessagePorta.subscribe(results => {
-      setResults(results);
+      downloadJSONFile(results, 'results.json');
     });
   }, []);
 
   const onExport = () => {
-    // reset to idle
-    downloadJSONFile(results, 'results.json'); // TODO: different name
+    requestTaskResultsMessagePorta.push();
   }
 
   return (
     <>
-      <Operator disabled={!results} primary onClick={onExport} >
+      <Operator primary onClick={onExport} >
         导出数据
-      </Operator>
-      <Operator onClick={() => storePorta.push({
-        runningState: RunningState.Idle,
-        doneCount: 0,
-        voidCount: 0,
-      })} >
-        取消
       </Operator>
     </>
   )
@@ -57,7 +45,14 @@ export const CrawlerOperators: FC = () => {
         <>
           <p className="total">任务完成，共{sumText}</p>
           <div className="operators">
-            <ExportOperation />
+            <ExportOperator />
+            <Operator onClick={() => storePorta.push({
+              runningState: RunningState.Idle,
+              doneCount: 0,
+              voidCount: 0,
+            })} >
+              取消
+            </Operator>
           </div>
         </>
       );
@@ -66,6 +61,7 @@ export const CrawlerOperators: FC = () => {
         <>
           <p className="total">已{sumText}</p>
           <div className="operators">
+            <ExportOperator />
             <Operator onClick={() => cancelTaskMessagePorta.push()} >终止任务</Operator>
           </div>
         </>
