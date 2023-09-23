@@ -90,31 +90,36 @@ export class ActionRunner {
         }
         case 'capture': {
           context.hasCaptureAction = true;
-          for (const [field, targetQuery] of Object.entries(action.fields)) {
-            const { selector, attr, flag = '' } = isString(targetQuery) ? {
-              selector: targetQuery,
-              attr: '',
-            } : targetQuery;
+          for (const [field, targetQueryMaybeList] of Object.entries(action.fields)) {
+            const targetQueryList = Array.isArray(targetQueryMaybeList) ? targetQueryMaybeList : [targetQueryMaybeList];
 
-            const target = selector ?
-              node.querySelector(selector) :
-              node;
+            for (const targetQuery of targetQueryList) {
+              const { selector, attr, flag = '' } = isString(targetQuery) ? {
+                selector: targetQuery,
+                attr: '',
+              } : targetQuery;
 
-            let strVal: string;
+              const target = selector ?
+                node.querySelector(selector) :
+                node;
 
-            if (attr) {
-              if (isHTMLElement(target) || isSVGElement(target)) {
-                strVal = target.getAttribute(attr);
+              let strVal: string;
+
+              if (attr) {
+                if (isHTMLElement(target) || isSVGElement(target)) {
+                  strVal = target.getAttribute(attr);
+                }
+              } else {
+                if (isHTMLElement(target)) {
+                  strVal = target.innerText;
+                }
               }
-            } else {
-              if (isHTMLElement(target)) {
-                strVal = target.innerText;
-              }
-            }
 
-            if (strVal != null) {
-              context.hasCaptued = true;
-              assign(obj, field, flag || strVal);
+              if (strVal != null) {
+                context.hasCaptued = true;
+                assign(obj, field, flag || strVal);
+                break;
+              }
             }
           }
           break;

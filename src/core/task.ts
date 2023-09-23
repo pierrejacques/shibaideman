@@ -4,6 +4,8 @@ import { actionsDoneMessagePorta } from "@/portas/message";
 import { catchRuntimeError, createResolvable, timeout } from "@/utils/lang";
 import { ExecutiveIterator, Schedulable } from "./interface";
 
+const TIMEOUT_IN_MILLISECONDS = 1000 * 60;
+
 export class Task {
   constructor(
     private iterable: Iterable<UrlInfo>, // what are the pages
@@ -66,9 +68,9 @@ export class Task {
           });
 
         Promise.race([
-          timeout(30000).then(
+          timeout(TIMEOUT_IN_MILLISECONDS).then(
             () => ({ data: {}, code: ResultCode.Timeout })
-          ), // timeout for 30seconds
+          ),
           actionResolvable.promise
         ]).then(
           data => {

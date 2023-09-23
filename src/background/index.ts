@@ -35,7 +35,7 @@ startTaskMessagePorta.subscribe(
     const task = new Task(
       new PageIterable(pages),
       new ParallelScheduler(executionConfig),
-      actionScheme
+      actionScheme,
     );
 
     ref.results = []; // clear

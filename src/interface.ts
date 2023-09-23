@@ -19,7 +19,7 @@ export type Action = {
   ms: number;
 } | {
   type: 'capture'; // capture fields
-  fields: Record<string, TargetQuery>;
+  fields: Record<string, TargetQuery | TargetQuery[]>;
 } | {
   type: 'event'; // trigger an event on the page
   event: 'click' | 'focus' | 'blur';
