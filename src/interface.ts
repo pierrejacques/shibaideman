@@ -46,6 +46,7 @@ export interface Pages {
 }
 
 export interface ActionScheme {
+  flag?: TargetQuery; // if target is present, run task
   actions: Action[];
 }
 

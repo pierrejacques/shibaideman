@@ -1,9 +1,17 @@
 import { actionsDoneMessagePorta } from "@/portas/message";
-import { ActionRunner } from '@/core/action-runner';
+import { ActionRunner, queryTarget } from '@/core/action-runner';
+import { ActionScheme } from "@/interface";
 
 async function run() {
-  chrome.runtime.onMessage.addListener(message => {
-    if (Array.isArray(message?.actions)) {
+  let executable = true;
+  chrome.runtime.onMessage.addListener((message: ActionScheme & { tabId: number }) => {
+    console.log('message', message, message.flag ?? queryTarget(document, message.flag));
+    if (
+      executable &&
+      Array.isArray(message?.actions) &&
+      (!message?.flag || queryTarget(document, message.flag)) // if flag is present, then once the flag is matched, execute the runner
+    ) {
+      executable = false;
       // action scheme received
       const runner = new ActionRunner(message.actions);
 

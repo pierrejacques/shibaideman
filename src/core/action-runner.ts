@@ -1,4 +1,4 @@
-import { Action, LoopCondition, PageResult } from "@/interface";
+import { Action, LoopCondition, PageResult, TargetQuery } from "@/interface";
 import { assign, isString, last, timeout } from "@/utils/lang";
 import { isHTMLElement, isSVGElement } from '@/utils/dom';
 import { ResultCode } from "@/enum";
@@ -6,6 +6,31 @@ import { ResultCode } from "@/enum";
 interface RuntimeContext {
   hasCaptureAction: boolean;
   hasCaptued: boolean;
+}
+
+export function queryTarget(node: ParentNode, targetQuery: TargetQuery) {
+  const { selector, attr, flag = '' } = isString(targetQuery) ? {
+    selector: targetQuery,
+    attr: '',
+  } : targetQuery;
+
+  const target = selector ?
+    node.querySelector(selector) :
+    node;
+
+  let rVal: string;
+
+  if (attr) {
+    if (isHTMLElement(target) || isSVGElement(target)) {
+      rVal = target.getAttribute(attr);
+    }
+  } else {
+    if (isHTMLElement(target)) {
+      rVal = target.innerText;
+    }
+  }
+
+  return rVal != null ? flag || rVal : undefined;
 }
 
 export class ActionRunner {
@@ -94,30 +119,11 @@ export class ActionRunner {
             const targetQueryList = Array.isArray(targetQueryMaybeList) ? targetQueryMaybeList : [targetQueryMaybeList];
 
             for (const targetQuery of targetQueryList) {
-              const { selector, attr, flag = '' } = isString(targetQuery) ? {
-                selector: targetQuery,
-                attr: '',
-              } : targetQuery;
+              const value = queryTarget(node, targetQuery);
 
-              const target = selector ?
-                node.querySelector(selector) :
-                node;
-
-              let strVal: string;
-
-              if (attr) {
-                if (isHTMLElement(target) || isSVGElement(target)) {
-                  strVal = target.getAttribute(attr);
-                }
-              } else {
-                if (isHTMLElement(target)) {
-                  strVal = target.innerText;
-                }
-              }
-
-              if (strVal != null) {
+              if (value != null) {
                 context.hasCaptued = true;
-                assign(obj, field, flag || strVal);
+                assign(obj, field, value);
                 break;
               }
             }

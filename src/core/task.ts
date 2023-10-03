@@ -24,7 +24,8 @@ export class Task {
     const executiveIterator: ExecutiveIterator = () => {
       if (!cleanup) {
         const tabOnUpdatedCallback = (id: number, info: any) => {
-          if (tabResolveMap.has(id) && info?.status === 'complete') {
+          // if flag is present, doesn't have to wait for the tab to complete its loading
+          if (tabResolveMap.has(id) && (this.actionScheme.flag || info?.status === 'complete')) {
             chrome.tabs.sendMessage<ActionScheme & { tabId: number }>(id, {
               ...this.actionScheme,
               tabId: id,
