@@ -4,7 +4,7 @@ import { actionsDoneMessagePorta } from "@/portas/message";
 import { catchRuntimeError, createResolvable, timeout } from "@/utils/lang";
 import { ExecutiveIterator, Schedulable } from "./interface";
 
-const TIMEOUT_IN_MILLISECONDS = 1000 * 60;
+const TIMEOUT_IN_MILLISECONDS = 1000 * 30;
 
 export class Task {
   constructor(
