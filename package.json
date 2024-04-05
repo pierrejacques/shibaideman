@@ -1,6 +1,6 @@
 {
   "name": "shibaideman",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Shibaider man versatile crawler",
   "main": "index.js",
   "scripts": {

@@ -8,25 +8,35 @@ import { Route, routeContext } from '../route';
 import { downloadJSONFile } from '../utils';
 import { Operator } from './operator';
 
-const ExportOperator: FC = () => {
-  useEffect(() => {
-    return taskResultsMessagePorta.subscribe(results => {
-      downloadJSONFile(results, 'results.json');
-    });
-  }, []);
+const ExportOperator: FC<{
+  finished?: boolean
+}> = ({
+  finished
+}) => {
+    useEffect(() => {
+      return taskResultsMessagePorta.subscribe(results => {
+        downloadJSONFile(results, 'results.json');
+      });
+    }, []);
 
-  const onExport = () => {
-    requestTaskResultsMessagePorta.push();
+    const onExport = () => {
+      requestTaskResultsMessagePorta.push();
+    }
+
+    useEffect(() => {
+      if (finished) { // once finished, export the file
+        onExport();
+      }
+    }, [finished]);
+
+    return (
+      <>
+        <Operator primary onClick={onExport} >
+          导出数据
+        </Operator>
+      </>
+    )
   }
-
-  return (
-    <>
-      <Operator primary onClick={onExport} >
-        导出数据
-      </Operator>
-    </>
-  )
-}
 
 export const CrawlerOperators: FC = () => {
   const [, setRouter] = useContext(routeContext);
@@ -45,7 +55,7 @@ export const CrawlerOperators: FC = () => {
         <>
           <p className="total">任务完成，共{sumText}</p>
           <div className="operators">
-            <ExportOperator />
+            <ExportOperator finished />
             <Operator onClick={() => storePorta.push({
               runningState: RunningState.Idle,
               doneCount: 0,
