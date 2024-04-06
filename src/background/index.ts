@@ -1,20 +1,28 @@
 import { ResultCode, RunningState } from '@/enum';
 import { storePorta } from '@/portas/store';
-import { cancelTaskMessagePorta, startTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
+import { cancelTaskMessagePorta, startTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta, requestRemainingPagesMessagePorta, remainingPagesMessagePorta } from '@/portas/message';
 import { ParallelScheduler } from '@/core/parallel-scheduler';
 import { PageIterable } from '@/core/page-iterable';
-import { PageResult } from '@/interface';
+import { PageResult, Pages, UrlInfo } from '@/interface';
 import { Task } from '@/core/task';
+import { INTERRUPT_ERROR } from '@/const';
 
 const ref = {
   results: [] as PageResult[],
   cancelTaskRun: null as () => void,
+  remaining: null as Pages,
 }
 
 // listen export request
 requestTaskResultsMessagePorta.subscribe(
   () => {
     taskResultsMessagePorta.push(ref.results);
+  }
+)
+
+requestRemainingPagesMessagePorta.subscribe(
+  () => {
+    remainingPagesMessagePorta.push(ref.remaining);
   }
 )
 
@@ -32,8 +40,10 @@ startTaskMessagePorta.subscribe(
   ({ pages, actionScheme, executionConfig }) => {
     if (storePorta.getValue().runningState !== RunningState.Idle) return;
 
+    const pageIterable = new PageIterable(pages);
+
     const task = new Task(
-      new PageIterable(pages),
+      pageIterable,
       new ParallelScheduler(executionConfig),
       actionScheme,
     );
@@ -43,12 +53,19 @@ startTaskMessagePorta.subscribe(
 
     storePorta.push({
       runningState: RunningState.Running,
+      totalCount: pageIterable.length,
       doneCount: 0,
       voidCount: 0,
     });
 
-    ref.cancelTaskRun = task.run(
+    const taskCancel = task.run(
       (result) => {
+        if ('error' in result) {
+          if (result.error === INTERRUPT_ERROR) {
+            ref.cancelTaskRun(); // interrupt
+          }
+          return;
+        }
         ref.results.push(result);
         storePorta.push(prev => ({
           ...prev,
@@ -59,12 +76,28 @@ startTaskMessagePorta.subscribe(
         }))
       },
       () => {
-        storePorta.push(prev => ({
+        storePorta.push(prev => prev.runningState !== RunningState.Interrupted ? ({
           ...prev,
-          runningState: RunningState.Completed,
-        }));
+          runningState: RunningState.Completed
+        }) : prev);
       }
     );
+
+    ref.cancelTaskRun = () => {
+      taskCancel();
+      const { iterator } = taskCancel;
+      const urls: string[] = [];
+      while (true) {
+        const next = iterator.next();
+        if (next.done) break;
+        urls.push((next.value as UrlInfo).url);
+      }
+      ref.remaining = { urls };
+      storePorta.push(prev => prev.runningState !== RunningState.Completed ? ({
+        ...prev,
+        runningState: RunningState.Interrupted,
+      }) : prev);
+    };
   }
 );
 

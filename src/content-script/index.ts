@@ -1,6 +1,6 @@
 import { actionsDoneMessagePorta } from "@/portas/message";
 import { ActionRunner, queryTarget } from '@/core/action-runner';
-import { Action, ActionScheme } from "@/interface";
+import { Action, ActionScheme, MaybeResult } from "@/interface";
 
 async function run() {
   let executable = true;
@@ -29,7 +29,7 @@ async function run() {
             tabId,
             result: {
               error: (e as Error).message
-            }
+            } as MaybeResult
           });
         }
       )

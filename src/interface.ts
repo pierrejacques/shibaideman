@@ -34,6 +34,9 @@ export type Action = {
   selector: string;
   field?: string;
   actions: Action[];
+} | {
+  type: 'interrupt';
+  selector: string;
 }
 
 export type UrlScheme = string | {
@@ -80,6 +83,10 @@ export interface PageResult {
   data: PageData;
   code: ResultCode;
 }
+
+export type MaybeResult = Omit<PageResult, 'page'> | {
+  error: string;
+};
 
 export type ConvertableFormat = 'json' | 'csv';
 

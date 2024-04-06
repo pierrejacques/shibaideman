@@ -1,10 +1,15 @@
 import { ResultCode } from "@/enum";
-import { ActionScheme, PageResult, UrlInfo } from "@/interface";
+import { ActionScheme, MaybeResult, UrlInfo } from "@/interface";
 import { actionsDoneMessagePorta } from "@/portas/message";
 import { catchRuntimeError, createResolvable, timeout } from "@/utils/lang";
 import { ExecutiveIterator, Schedulable } from "./interface";
 
 const TIMEOUT_IN_MILLISECONDS = 1000 * 30;
+
+export interface TaskCancel {
+  (): void;
+  iterator: Iterator<UrlInfo, any, undefined>;
+}
 
 export class Task {
   constructor(
@@ -13,11 +18,11 @@ export class Task {
     private actionScheme: ActionScheme, // do what on each page
   ) { }
 
-  run(onResult?: (data: PageResult) => void, onFinished?: () => void): () => void {
+  run(onResult?: (data: MaybeResult & { page: UrlInfo }) => void, onFinished?: () => void): TaskCancel {
     let done = false;
 
     const iterator = this.iterable[Symbol.iterator]();
-    const tabResolveMap = new Map<number, (result: any) => void>();
+    const tabResolveMap = new Map<number, (result: MaybeResult) => void>();
 
     let cleanup: () => void;
 
@@ -45,13 +50,14 @@ export class Task {
           unsub();
         }
       }
+
       const next = iterator.next();
       if (next.done) return null;
 
       return new Promise<void>((resolve) => {
         let tabId: number;
 
-        const actionResolvable = createResolvable<Omit<PageResult, 'page'>>();
+        const actionResolvable = createResolvable<MaybeResult>();
         const page = next.value as UrlInfo;
 
         chrome
@@ -97,10 +103,12 @@ export class Task {
         onFinished?.();
       });
 
-    return () => {
+    const rval: TaskCancel = () => {
       if (!done) {
         this.schedulable.halt();
       }
     };
+    rval.iterator = iterator;
+    return rval;
   }
 }

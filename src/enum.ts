@@ -1,6 +1,7 @@
 export enum RunningState {
   Idle = "IDLE",
   Running = 'RUNNING',
+  Interrupted = 'INTERRUPTED',
   Completed = 'COMPLETE'
 }
 

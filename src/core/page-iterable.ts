@@ -19,6 +19,15 @@ export class PageIterable implements Iterable<UrlInfo> {
 
   constructor(private pages: Pages) { }
 
+  get length() {
+    return this.pages.urls.reduce<number>((sum, url) => {
+      if (typeof url === 'string') {
+        return sum + 1;
+      }
+      return sum + Object.values(url.source).reduce((p, i) => p * i.length, 1);
+    }, 0);
+  }
+
   *[Symbol.iterator]() {
     for (const url of this.pages.urls) {
       const { template, source } = typeof url === 'string' ? {

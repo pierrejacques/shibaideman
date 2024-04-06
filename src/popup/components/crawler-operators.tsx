@@ -1,5 +1,5 @@
 import { RunningState } from '@/enum';
-import { cancelTaskMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
+import { cancelTaskMessagePorta, remainingPagesMessagePorta, requestRemainingPagesMessagePorta, requestTaskResultsMessagePorta, taskResultsMessagePorta } from '@/portas/message';
 import { storePorta } from '@/portas/store';
 import { useStorePorta } from '@/utils/hooks';
 import { Spin } from 'antd';
@@ -30,13 +30,41 @@ const ExportOperator: FC<{
     }, [finished]);
 
     return (
-      <>
-        <Operator primary onClick={onExport} >
-          导出数据
-        </Operator>
-      </>
+      <Operator primary onClick={onExport} >
+        导出数据
+      </Operator>
     )
   }
+
+const RemainingOperator: FC = () => {
+  const onExport = () => {
+    requestRemainingPagesMessagePorta.push();
+  }
+
+  useEffect(() => {
+    onExport();
+    return remainingPagesMessagePorta.subscribe(results => {
+      downloadJSONFile(results, 'pages-remaining.json');
+    });
+  }, []);
+
+  return (
+    <Operator primary onClick={onExport} >
+      导出剩余页面
+    </Operator>
+  )
+}
+
+const CancelOperator: FC = () => (
+  <Operator onClick={() => storePorta.push(prev => ({
+    ...prev,
+    runningState: RunningState.Idle,
+    doneCount: 0,
+    voidCount: 0,
+  }))} >
+    取消
+  </Operator>
+)
 
 export const CrawlerOperators: FC = () => {
   const [, setRouter] = useContext(routeContext);
@@ -45,9 +73,9 @@ export const CrawlerOperators: FC = () => {
 
   if (!store) return <Spin />
 
-  const { runningState, doneCount, voidCount } = store;
+  const { runningState, doneCount, totalCount, voidCount } = store;
 
-  const sumText = `抓取 ${doneCount} 条数据，其中空数据 ${voidCount} 条`;
+  const sumText = `抓取 ${doneCount}/${totalCount} 条数据，其中空数据 ${voidCount} 条`;
 
   switch (runningState) {
     case RunningState.Completed:
@@ -56,13 +84,18 @@ export const CrawlerOperators: FC = () => {
           <p className="total">任务完成，共{sumText}</p>
           <div className="operators">
             <ExportOperator finished />
-            <Operator onClick={() => storePorta.push({
-              runningState: RunningState.Idle,
-              doneCount: 0,
-              voidCount: 0,
-            })} >
-              取消
-            </Operator>
+            <CancelOperator />
+          </div>
+        </>
+      );
+    case RunningState.Interrupted:
+      return (
+        <>
+          <p className="total">任务中断，已{sumText}</p>
+          <div className="operators">
+            <ExportOperator finished />
+            <RemainingOperator />
+            <CancelOperator />
           </div>
         </>
       );

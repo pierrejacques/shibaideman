@@ -1,7 +1,8 @@
-import { Action, LoopCondition, PageResult, TargetQuery } from "@/interface";
+import { Action, LoopCondition, MaybeResult, TargetQuery } from "@/interface";
 import { assign, isString, last, timeout } from "@/utils/lang";
 import { isHTMLElement, isSVGElement } from '@/utils/dom';
 import { ResultCode } from "@/enum";
+import { INTERRUPT_ERROR } from "@/const";
 
 interface RuntimeContext {
   hasCaptureAction: boolean;
@@ -55,7 +56,7 @@ export class ActionRunner {
     this.actions = actions;
   }
 
-  public async run(): Promise<Omit<PageResult, 'page'>> {
+  public async run(): Promise<MaybeResult> {
     if (this.isRunning) {
       throw new Error('Busy: Actions already on the run');
     };
@@ -130,6 +131,13 @@ export class ActionRunner {
           }
           break;
         }
+        case 'interrupt': {
+          const value = queryTarget(node, action.selector);
+          if (value != null) {
+            throw new Error(INTERRUPT_ERROR);
+          }
+          break;
+        };
         case 'loop':
           loopStack.push({
             startIndex: index,
