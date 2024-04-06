@@ -64,24 +64,26 @@ export function validateActions(actions: Action[]) {
   for (const action of actions) {
     switch (action?.type) {
       case 'capture':
-        if (!action.fields) throw new Error('invalid capture action, no "fields"');
+        if (!action.fields) throw new Error('invalid capture action, no "fields" provided');
         break;
       case 'children':
-        if (!action.selector) throw new Error('invalid capture action, no "fields"');
+        if (!action.selector) throw new Error('invalid capture action, no "fields" provided');
         validateActions(action.actions);
         break;
       case 'delay':
-        if (!action.ms) throw new Error('invalid delay action, no "ms"');
+        if (!action.ms) throw new Error('invalid delay action, no "ms" provided');
         break;
       case 'event':
         if (!['click', 'focus', 'blur'].includes(action.event)) throw new Error('invalid event action, unknown event');
-        if (!action.selector) throw new Error('invalid event action, no "selector"');
+        if (!action.selector) throw new Error('invalid event action, no "selector" provided');
         break;
       case 'loop':
-        if (!action.condition) throw new Error('invalid loop action, no "condition"');
+        if (!action.condition) throw new Error('invalid loop action, no "condition" provided');
         break;
       case 'loop-end':
         break;
+      case 'interrupt':
+        if (!action.selector) throw new Error('invalid interrupt action, no "selector" provided')
       default:
         throw new Error(`unknown action type`)
     }
