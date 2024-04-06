@@ -83,7 +83,8 @@ export function validateActions(actions: Action[]) {
       case 'loop-end':
         break;
       case 'interrupt':
-        if (!action.selector) throw new Error('invalid interrupt action, no "selector" provided')
+        if (!action.selector) throw new Error('invalid interrupt action, no "selector" provided');
+        break;
       default:
         throw new Error(`unknown action type`)
     }
